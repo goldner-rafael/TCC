@@ -30,6 +30,10 @@ byte Node1 = 0xBB;
 //Contador para loop do programa principal
 int nodeCount = 0;
 
+//Definição do servidor local ThingsBoard
+#define TOKEN "2iepfZhttoJXkhHNSHrf"
+#define TB_SERVER "192.168.0.102"
+
 //Variável para armazenar string a ser exibida no display
 String SenderNode = "";
 
@@ -46,7 +50,12 @@ int status_wifi = WL_IDLE_STATUS;
 unsigned long previousMillis=0;
 unsigned long currentMillis=0;
 
-unsigned long interval = 1; //
+unsigned long interval = 1000;
+
+bool subscribed = false;
+
+WiFiClient espClient;
+ThingsBoard tb(espClient);
 
 //Função para inicialização da rede Wi-Fi
 void startWiFi(){
@@ -182,9 +191,22 @@ void loop() {
   if(status_wifi != WL_CONNECTED){
     reconnectWiFi();
   }
+  if(!tb.connected()){
+    subscribed = false;
 
+    Serial.print("Conectando ao servidor ");
+    Serial.print(TB_SERVER);
+    Serial.print(" com o token ");
+    Serial.println(TOKEN);
+    if (!tb.connect(TB_SERVER, TOKEN)) {
+      Serial.println("Erro de conexão");
+      return;
+    }
+
+  }
   currentMillis = millis();
   if(currentMillis-previousMillis >= interval){
+    previousMillis = currentMillis;
     //Imprime no display a primeira linha
     lcd.clear();
     lcd.setCursor(0,0);
@@ -224,5 +246,5 @@ void loop() {
     sendMessage(message,Gateway,nodeToSend); //Envia a mensagem ao sensor correspondente
     onReceive(LoRa.parsePacket()); //Chama a função onReceive após receber os dados
   }
-  previousMillis = currentMillis;
+  tb.loop();
 }
