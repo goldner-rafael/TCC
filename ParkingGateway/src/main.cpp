@@ -111,6 +111,8 @@ void setup() {
   lcd.print("Inic. LoRa");
   lcd.setCursor(0,1);
   lcd.print("Concluida");
+  pinMode(led_send,OUTPUT);
+  pinMode(led_rec,OUTPUT);
   //Inicializa o Wi-Fi após inicializar o LoRa
   startWiFi();
 }
@@ -195,7 +197,6 @@ void loop() {
   //Conecta ao servidor local ThingsBoard (caso não esteja conectado ainda)
   if(!tb.connected()){
     subscribed = false;
-
     Serial.print("Conectando ao servidor ");
     Serial.print(TB_SERVER);
     Serial.print(" com o token ");
@@ -244,6 +245,8 @@ void loop() {
       nodeToSend = 0xCF;
       break;
       */
+      default:
+      break;
     }
     nodeCount++;
     sendMessage(message,Gateway,nodeToSend); //Envia a mensagem ao sensor correspondente
