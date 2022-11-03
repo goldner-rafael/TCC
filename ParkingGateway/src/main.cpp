@@ -47,6 +47,7 @@ LiquidCrystal_I2C lcd(0x27,20,4); //Display de LCD 20x4
 
 int status_wifi = WL_IDLE_STATUS;
 
+//Variáveis de controle para função millis
 unsigned long previousMillis=0;
 unsigned long currentMillis=0;
 
@@ -110,7 +111,7 @@ void setup() {
   lcd.print("Inic. LoRa");
   lcd.setCursor(0,1);
   lcd.print("Concluida");
-
+  //Inicializa o Wi-Fi após inicializar o LoRa
   startWiFi();
 }
 
@@ -191,6 +192,7 @@ void loop() {
   if(status_wifi != WL_CONNECTED){
     reconnectWiFi();
   }
+  //Conecta ao servidor local ThingsBoard (caso não esteja conectado ainda)
   if(!tb.connected()){
     subscribed = false;
 
@@ -204,6 +206,7 @@ void loop() {
     }
 
   }
+  //Loop principal do programa
   currentMillis = millis();
   if(currentMillis-previousMillis >= interval){
     previousMillis = currentMillis;
