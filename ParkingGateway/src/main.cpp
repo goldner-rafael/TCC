@@ -23,19 +23,12 @@ const int led_rec = 25;
 //Declaração dos endereços
 byte Gateway = 0xFF;
 
-//Inclusão dos endereços dos Nodes de sensor de estacionamento
-//ATENÇÃO: não repetir o mesmo endereço para dois Nodes diferentes
-byte Node1 = 0xBB;
-
 //Contador para loop do programa principal
 int nodeCount = 0;
 
 //Definição do servidor local ThingsBoard
 #define TOKEN "2iepfZhttoJXkhHNSHrf"
 #define TB_SERVER "192.168.0.102"
-
-//Variável para armazenar string a ser exibida no display
-String SenderNode = "";
 
 //Definição de SSID e PASSWORD para autenticação na rede Wi-fi
 //ATENÇÃO: Substituir as strings abaixo pelos valores correspondentes à rede Wi-Fi ao qual o gateway irá se conectar
@@ -57,6 +50,8 @@ bool subscribed = false;
 
 WiFiClient espClient;
 ThingsBoard tb(espClient);
+
+bool subscribed = false;
 
 //Função para inicialização da rede Wi-Fi
 void startWiFi(){
@@ -118,26 +113,28 @@ void setup() {
 }
 
 //Função para enviar mensagem do gateway para os sensores solicitando a leitura dos dados
-void sendMessage(String msg, byte MasterNode, byte Receiver){
-  LoRa.beginPacket();
-  LoRa.write(MasterNode);
-  LoRa.write(Receiver);
+void sendMessage(String msg){
+  digitalWrite(led_send,HIGH);
+  LoRa.beginPacket();  
   LoRa.print(msg);
   LoRa.endPacket();
+  digitalWrite(led_send,LOW);
 }
 
 void onReceive(int packetSize){
-  if(packetSize == 0) return; //Se não for recebido nenhum pacote, não faz nada
-  int rec = LoRa.read();
-  byte sender = LoRa.read();
-  byte inc_msg_id = LoRa.read();
-  byte inc_msg_len = LoRa.read();
-  switch(sender){ //Estrutura para verificar de qual sensor se quer fazer a leitura
+ digitalWrite(led_rec,HIGH);
+  if(packetSize == 0){    
+    return;
+  }
+  else
+  {
+    String sender = LoRa.readStringUntil('-');
+    Serial.print(sender);
+    Serial.println(" enviou uma informação");
+ /* switch(sender){ //Estrutura para verificar de qual sensor se quer fazer a leitura
     case 0xBB:
     SenderNode = "Vg1: ";
-    break;
-    //Resto da estrutura Switch com endereços a definir para múltiplos nodes. Inseridos como comentário, por enquanto.
-    /*
+    break;        
     case 0xC0:
     SenderNode = "Vg2: ";
     break;
@@ -154,8 +151,11 @@ void onReceive(int packetSize){
     SenderNode = "Vg6: ";
     break;
     */
-    default:
-    break;
+   String status_vaga = "";
+   while (LoRa.available()){
+    status_vaga += LoRa.readString();
+  }
+  Serial.println(status_vaga);
   }
 
   //Obtém mensagem enviada pelo sensor
@@ -216,41 +216,19 @@ void loop() {
     lcd.setCursor(0,0);
     lcd.print("Sit. Vagas: ");
 
-    String message = "read"; //Envia comando para ler os sensores
-    byte nodeToSend; //Variável para guardar o endereço do sensor a ser lido  
+    lcd.clear();
+    lcd.setCursor(0,0); 
+    lcd.print("Sit. Vagas: ");
 
-    //As estruturas "if" e "switch" abaixo são responsáveis pelo loop de leitura dos sensores de estacionamento
-    if(nodeCount > 5){
-      nodeCount = 0;
-    }
-
-    switch(nodeCount){
-      case 0:
-      nodeToSend = 0xBB;
-      break;
-      /*
-      case 1:
-      nodeToSend = 0xC0;
-      break;
-      case 2:
-      nodeToSend = 0xC3;
-      break;
-      case 3:
-      nodeToSend = 0xC9;
-      break;
-      case 4:
-      nodeToSend = 0xCC;
-      break;
-      case 5:
-      nodeToSend = 0xCF;
-      break;
-      */
-      default:
-      break;
-    }
-    nodeCount++;
-    sendMessage(message,Gateway,nodeToSend); //Envia a mensagem ao sensor correspondente
-    onReceive(LoRa.parsePacket()); //Chama a função onReceive após receber os dados
+    for(int i=0;i<6;i++)
+    {
+      String message = "V"+String(i+1);
+      message += "read";
+      sendMessage(message); //Envia a mensagem ao sensor correspondente 
+    }   
+    
+  }
+  onReceive(LoRa.parsePacket()); //Chama a função onReceive após receber algum dado  
   }
   tb.loop();
 }
