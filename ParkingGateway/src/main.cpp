@@ -23,6 +23,8 @@ const int led_rec = 25;
 //Declaração dos endereços
 byte Gateway = 0xFF;
 
+String sensores[];
+
 //Contador para loop do programa principal
 int nodeCount = 0;
 
@@ -131,62 +133,52 @@ void onReceive(int packetSize){
     String sender = LoRa.readStringUntil('-');
     Serial.print(sender);
     Serial.println(" enviou uma informação");
- /* switch(sender){ //Estrutura para verificar de qual sensor se quer fazer a leitura
-    case 0xBB:
-    SenderNode = "Vg1: ";
-    break;        
-    case 0xC0:
-    SenderNode = "Vg2: ";
-    break;
-    case 0xC3:
-    SenderNode = "Vg3: ";
-    break;
-    case 0xC9:
-    SenderNode = "Vg4: ";
-    break;
-    case 0xCC:
-    SenderNode = "Vg5: ";
-    break;
-    case 0xCF:
-    SenderNode = "Vg6: ";
-    break;
-    */
+
    String status_vaga = "";
    while (LoRa.available()){
     status_vaga += LoRa.readString();
   }
   Serial.println(status_vaga);
   }
-
-  //Obtém mensagem enviada pelo sensor
-  String inc_msg = "";
-  while (LoRa.available()){
-    inc_msg += (char)LoRa.read();
-  }
-
-  //Verifica se o comprimento da mensagem está correto
-  if(inc_msg_len != inc_msg.length()){
-    Serial.println("Erro: comprimento da mensagem não é válido");
-    return; //Aborta a execução da função em caso de erro
-  }
-
-  //Verifica se a mensagem enviada é para este dispositivo
-  if(rec != Node1 && rec != Gateway){
-    Serial.println("Erro: mensagem não é para este dispositivo");
-    return; //Aborta a execução da função caso a mensagem não seja para este dispositivo
-  }
-
-  switch(sender){ //Estrutura para display dos dados da situação das vagas de estacionamento. Parte em implementação.
-    case 0xBB:
+    if(sender == "V1")
+    {
     lcd.setCursor(0,1);
     lcd.print(sender);
-    lcd.setCursor(0,4);
-    lcd.print(inc_msg);
-    break;
-
-    default:
-    break;
-  }
+    lcd.setCursor(3,1);
+    if(status_vaga == "0"){
+      lcd.print("Ocup.");
+    }
+    else if(status_vaga == "1"){
+      lcd.print("Livre");
+    }
+    }
+    else if(sender == "V2")
+    {
+      lcd.setCursor(0,2);
+      lcd.print(sender);
+      lcd.setCursor(3,2);
+    if(status_vaga == "0"){
+      lcd.print("Ocup.");
+    }
+    else if(status_vaga == "1"){
+      lcd.print("Livre");
+    }
+    }
+  else if(sender == "V3")
+    {
+      lcd.setCursor(0,3);
+      lcd.print(sender);
+      lcd.setCursor(3,3);
+    if(status_vaga == "0"){
+      lcd.print("Ocup.");
+    }
+    else if(status_vaga == "1"){
+      lcd.print("Livre");
+    }
+    } 
+ 
+    digitalWrite(led_rec,LOW);
+  
 }
 
 void loop() {
