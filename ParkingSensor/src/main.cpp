@@ -23,7 +23,11 @@ byte Node1 = 0xBB; //Endereço do sensor (cada sensor tem um endereço diferente
 //Declaração dos dispositivos
 Ultrasonic sensor(TRIGGER,ECHO);
 
-String mensagem = ""; //Variável para armazenar a mensagem a ser enviada
+String ID = "V1"; //Variável para identificar a vaga do sensor
+
+float limiar = 60;
+
+bool vaga_livre = true;
 
 void setup() {
   //Inicialização do Monitor Serial
@@ -48,49 +52,37 @@ float readDistance(){
 }
 
 //Função para envio de mensagem por LoRa ao gateway
-void sendMessage(String msg, byte Receiver, byte Sender){
+void sendMessage(String msg){
   LoRa.beginPacket();
-  LoRa.write(Receiver);
-  LoRa.write(Sender);
+  LoRa.print(ID);
+  LoRa.print("-");
   LoRa.print(msg);
   LoRa.endPacket();
 }
 
 //Função para execução ao receber solicitação do gateway
 void onReceive(int packetSize){
-  if(packetSize == 0) return; //Se não houver pacote a receber, não faz nada
+  if(packetSize == 0) return; //Se não houver pacote a ser enviado, não faz nada
 
-  //Leitura do cabeçalho
-  int rec = LoRa.read();
-  byte send = LoRa.read();
-  byte inc_msg_id = LoRa.read();
-  byte inc_msg_len = LoRa.read();
+  String server_msg = "";
 
-  //Variável para armazenamento da mensagem recebida
-  String inc_msg = "";
-
-  //Recebe a mensagem enviada pelo gateway
   while(LoRa.available()){
-    inc_msg += (char)LoRa.read();
+    server_msg += LoRa.readString();
   }
 
-  //Verifica se o comprimento da mensagem está correto
-  if(inc_msg_len != inc_msg.length()){
-    Serial.println("Erro: comprimento da mensagem não é válido");
-    return; //Aborta a execução da função em caso de erro
+   //Envia a leitura até o servidor
+  if(server_msg == "read"){
+  int dist_atual =  int(readDistance());  
+  if(dist_atual < limiar)
+  {
+    vaga_livre = false;
   }
-
-  //Verifica se a mensagem enviada é para este dispositivo
-  if(rec != Node1 && rec != Gateway){
-    Serial.println("Erro: mensagem não é para este dispositivo");
-    return; //Aborta a execução da função caso a mensagem não seja para este dispositivo
+  else
+  {
+    vaga_livre = true;
   }
-  Serial.println(inc_msg);
-
-  // Executa a função abaixo caso a mensagem enviada esteja solicitando a situação da vaga 
-  if(inc_msg == "read_status"){
-    String message = String(readDistance()); //Lê a distância medida pelo sensor e converte o valor para string
-    sendMessage(message,Gateway,Node1); //Envia a mensagem lida
+   sendMessage(String(vaga_livre));
+  }
   }
 }
 
