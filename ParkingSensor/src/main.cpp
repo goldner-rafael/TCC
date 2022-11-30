@@ -55,6 +55,7 @@ void setup() {
     delay(500);
   }
   Serial.println("Inicialização do LoRa OK!");
+  LoRa.sleep();
 }
 
 //Função para leitura do dado do sensor ultrassônico
