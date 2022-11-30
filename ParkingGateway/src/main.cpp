@@ -150,12 +150,13 @@ else if(status == "1")
 
 //Função executada pelo gateway ao receber um pacote de dados do sensor através do LoRa
 void onReceive(int packetSize){
-    digitalWrite(led_rec,HIGH);
+    
   if(packetSize == 0){    
     return; //Se não for recebido nenhum pacote, não faz nada 
   }
   else
   {
+    digitalWrite(led_rec,HIGH);
     //Lê a string de identificação do sensor que enviou a informação e avisa no monitor serial
     String sender = LoRa.readStringUntil('-');
     Serial.print(sender);
@@ -199,13 +200,9 @@ void onReceive(int packetSize){
     {      
     displayStatus(sender,status_vaga,10,2);
     tb.sendTelemetryInt("S5",status_vaga.toInt());  
-    }
-    if(sender == "V6")
-    {      
-    displayStatus(sender,status_vaga,10,3);
-    tb.sendTelemetryInt("S6",status_vaga.toInt()); 
-    }     
+    }       
   }
+  digitalWrite(led_rec,LOW);
 }
 
 //Função para inicialização do programa
@@ -281,7 +278,7 @@ void loop() {
     timecount+=2;
     tb.sendTelemetryInt("cont",timecount); //Atualiza o contador de tempo
 
-    if(nodeCount > 5){
+    if(nodeCount > 4){
       nodeCount = 0;
     }  
      previousMillis = currentMillis;         
