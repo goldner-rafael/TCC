@@ -55,7 +55,6 @@ hostname -I
 #define TOKEN "2iepfZhttoJXkhHNSHrf" //Token gerado automaticamente dentro da plataforma
 
 //Variáveis para acesso do dispositivo à plataforma de IoT Thingsboard (servidor local)
-bool subscribed = false;
 WiFiClient espClient;
 ThingsBoard tb(espClient);
 
@@ -247,8 +246,6 @@ void loop() {
 
    //Tenta a conexão com a plataforma ThingsBoard
   if(!tb.connected()){
-    subscribed = false;
-
     Serial.print("Conectando ao servidor ");
     Serial.print(TB_SERVER);
     Serial.print(" com o token ");
