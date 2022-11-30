@@ -92,11 +92,11 @@ void onReceive(int packetSize){
   int dist_atual =  int(readDistance());  
   if(dist_atual < limiar)
   {
-    vaga_livre = false;
+    vaga_livre = false; //String correspondente: "0"
   }
   else
   {
-    vaga_livre = true;
+    vaga_livre = true; //String correspondente: "1"
   }
    sendMessage(String(vaga_livre)); //Envia mensagem ao gateway
   }
